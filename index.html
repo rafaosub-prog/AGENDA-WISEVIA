@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agenda</title>
+<style>
+  :root{
+    --bg:#F3F1EA;
+    --panel:#FFFFFF;
+    --ink:#26291F;
+    --ink-soft:#6B6A5E;
+    --line:#DFDACB;
+    --head:#5C7A4C;
+    --head-text:#F4F6EE;
+    --head-2:#4C6740;
+    --accent:#8FAE7A;
+    --status-aberto-bg:#E4F1DC; --status-aberto-fg:#3E7233;
+    --status-fechado-bg:#F3E3E1; --status-fechado-fg:#9B3B32;
+    --status-ferias-bg:#E2E9F4; --status-ferias-fg:#39538C;
+    --status-default-bg:#EFEDE3; --status-default-fg:#726F5F;
+    --tab-bg:#EAE6D8;
+    --tab-active-bg:#5C7A4C;
+    --tab-active-text:#F4F6EE;
+    --danger:#A6483D;
+    --shadow: 0 1px 2px rgba(30,28,20,0.06), 0 4px 14px rgba(30,28,20,0.05);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#1C1D17; --panel:#26271F; --ink:#EDEBDF; --ink-soft:#A5A290; --line:#3A3B30;
+      --head:#4C6740; --head-text:#F1F3E9; --head-2:#3E5535; --accent:#7C9A68;
+      --status-aberto-bg:#2C3D24; --status-aberto-fg:#9AD187;
+      --status-fechado-bg:#3D2825; --status-fechado-fg:#E19A8F;
+      --status-ferias-bg:#242C3D; --status-ferias-fg:#9AB2E8;
+      --status-default-bg:#31311F; --status-default-fg:#B4B09A;
+      --tab-bg:#2E2F25; --tab-active-bg:#7C9A68; --tab-active-text:#1C1D17;
+      --danger:#D8756A;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 4px 14px rgba(0,0,0,0.25);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#1C1D17; --panel:#26271F; --ink:#EDEBDF; --ink-soft:#A5A290; --line:#3A3B30;
+    --head:#4C6740; --head-text:#F1F3E9; --head-2:#3E5535; --accent:#7C9A68;
+    --status-aberto-bg:#2C3D24; --status-aberto-fg:#9AD187;
+    --status-fechado-bg:#3D2825; --status-fechado-fg:#E19A8F;
+    --status-ferias-bg:#242C3D; --status-ferias-fg:#9AB2E8;
+    --status-default-bg:#31311F; --status-default-fg:#B4B09A;
+    --tab-bg:#2E2F25; --tab-active-bg:#7C9A68; --tab-active-text:#1C1D17;
+    --danger:#D8756A;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 4px 14px rgba(0,0,0,0.25);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);}
+  body{
+    color:var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+    min-height:100vh;
+  }
+  .wrap{max-width:1400px;margin:0 auto;padding:24px 20px 60px;}
+  header.top{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px;}
+  header.top h1{font-size:22px;font-weight:700;letter-spacing:0.2px;margin:0;}
+  header.top .sub{color:var(--ink-soft);font-size:13px;}
+
+  .config-banner{
+    background:var(--status-fechado-bg); color:var(--status-fechado-fg);
+    border:1px solid var(--danger); border-radius:8px; padding:14px 16px;
+    margin-bottom:18px; font-size:13px; line-height:1.5;
+  }
+  .config-banner code{background:rgba(0,0,0,0.08); padding:2px 5px; border-radius:4px;}
+
+  .tabs-row{display:flex;align-items:center;gap:8px;overflow-x:auto;padding:4px 2px 14px;margin-bottom:6px;border-bottom:1px solid var(--line);}
+  .tab{position:relative;display:flex;align-items:center;gap:6px;background:var(--tab-bg);color:var(--ink);border:none;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer;flex-shrink:0;}
+  .tab.active{background:var(--tab-active-bg);color:var(--tab-active-text);}
+  .tab .x{opacity:0;font-size:14px;line-height:1;padding:2px;border-radius:4px;}
+  .tab:hover .x{opacity:0.6;}
+  .tab .x:hover{opacity:1 !important;background:rgba(0,0,0,0.15);}
+  .tab-add{flex-shrink:0;background:transparent;border:1px dashed var(--ink-soft);color:var(--ink-soft);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer;}
+  .tab-add:hover{border-color:var(--ink);color:var(--ink);}
+
+  .grid{display:grid;grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));gap:18px;margin-top:18px;}
+  .card{background:var(--panel);border-radius:10px;box-shadow:var(--shadow);overflow:hidden;border:1px solid var(--line);display:flex;flex-direction:column;}
+  .card-head{background:var(--head);color:var(--head-text);padding:10px 12px;display:flex;align-items:center;gap:8px;}
+  .card-head input.person-name{flex:1;background:transparent;border:none;color:var(--head-text);font-size:15px;font-weight:700;text-align:center;letter-spacing:0.3px;padding:4px 6px;border-radius:6px;min-width:0;}
+  .card-head input.person-name:focus{outline:2px solid rgba(255,255,255,0.5);background:rgba(255,255,255,0.08);}
+  .card-head button.del-person{background:transparent;border:none;color:var(--head-text);opacity:0.55;cursor:pointer;font-size:15px;padding:2px 6px;border-radius:6px;flex-shrink:0;}
+  .card-head button.del-person:hover{opacity:1;background:rgba(0,0,0,0.15);}
+
+  .table-scroll{overflow-x:auto;}
+  table.entries{width:100%;border-collapse:collapse;font-size:12.5px;min-width:560px;}
+  table.entries thead th{background:var(--head-2);color:var(--head-text);font-weight:700;font-size:11px;letter-spacing:0.3px;text-align:left;padding:6px 8px;white-space:nowrap;}
+  table.entries tbody td{border-bottom:1px solid var(--line);border-right:1px solid var(--line);padding:0;}
+  table.entries tbody td:last-child{border-right:none;}
+  table.entries tbody tr:hover{background:rgba(143,174,122,0.12);}
+  table.entries input, table.entries select{width:100%;border:none;background:transparent;color:var(--ink);font-size:12.5px;padding:7px 8px;font-family:inherit;}
+  table.entries input:focus, table.entries select:focus{outline:2px solid var(--accent);outline-offset:-2px;background:rgba(143,174,122,0.15);}
+  td.col-qtd input{text-align:center;}
+  td.col-del{width:30px;text-align:center;}
+  .row-del{background:transparent;border:none;color:var(--ink-soft);cursor:pointer;font-size:14px;padding:6px;opacity:0.5;}
+  .row-del:hover{opacity:1;color:var(--danger);}
+
+  select.status-select{border-radius:5px;font-weight:600;cursor:pointer;}
+  select.status-aberto{background:var(--status-aberto-bg);color:var(--status-aberto-fg);}
+  select.status-fechado{background:var(--status-fechado-bg);color:var(--status-fechado-fg);}
+  select.status-ferias{background:var(--status-ferias-bg);color:var(--status-ferias-fg);}
+  select.status-default{background:var(--status-default-bg);color:var(--status-default-fg);}
+
+  .card-foot{padding:8px 10px;display:flex;justify-content:flex-start;}
+  .add-row-btn{background:transparent;border:1px dashed var(--line);color:var(--ink-soft);font-size:12px;font-weight:600;padding:6px 10px;border-radius:7px;cursor:pointer;}
+  .add-row-btn:hover{border-color:var(--accent);color:var(--ink);}
+
+  .add-person-card{display:flex;align-items:center;justify-content:center;min-height:120px;border:1.5px dashed var(--line);border-radius:10px;background:transparent;color:var(--ink-soft);font-size:14px;font-weight:600;cursor:pointer;}
+  .add-person-card:hover{border-color:var(--accent);color:var(--ink);}
+
+  .empty-state{text-align:center;padding:60px 20px;color:var(--ink-soft);}
+  .empty-state button{margin-top:14px;background:var(--head);color:var(--head-text);border:none;padding:10px 18px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;}
+
+  @media (max-width: 480px){ .wrap{padding:16px 12px 40px;} .grid{grid-template-columns: 1fr;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Agenda</h1>
+      <div class="sub" id="syncSub">Conectando…</div>
+    </div>
+  </header>
+
+  <div id="configBanner"></div>
+  <div class="tabs-row" id="tabsRow"></div>
+  <div id="content"></div>
+</div>
+
+<script>
+/* =======================================================
+   CONFIGURAÇÃO — cole aqui a URL do seu Apps Script
+   (Implantar > Nova implantação > App da Web > copiar URL,
+   termina em /exec)
+   ======================================================= */
+const API_URL = "https://script.google.com/macros/s/AKfycbzGJc-jdYnpZnOW8nSqOupUZXLBg6Y1Q390e-YoGl6lhmMQQa6AUxbEnITFdBknE9VRjg/exec";
+/* ======================================================= */
+
+const POLL_MS = 4000;
+
+(function(){
+  const contentEl = document.getElementById('content');
+  const tabsRow = document.getElementById('tabsRow');
+  const syncSub = document.getElementById('syncSub');
+  const configBanner = document.getElementById('configBanner');
+
+  let state = { days: [], people: [], entries: [] };
+  let currentDayId = null;
+  let pollTimer = null;
+
+  const STATUS_OPTIONS = ["Aberto","Fechado","Em andamento","Férias"];
+
+  if(!API_URL || API_URL.indexOf('COLE_AQUI') === 0){
+    configBanner.innerHTML = '<div class="config-banner">Este site ainda não está ligado à planilha. '+
+      'Abra o arquivo <code>index.html</code>, encontre a linha <code>const API_URL = ...</code> e cole ali '+
+      'a URL do seu Apps Script (a que termina em <code>/exec</code>).</div>';
+    syncSub.textContent = 'Não configurado';
+  } else {
+    boot();
+  }
+
+  function statusClass(v){
+    const s = (v||'').toLowerCase();
+    if(s.includes('abert')) return 'status-aberto';
+    if(s.includes('fech')) return 'status-fechado';
+    if(s.includes('fér') || s.includes('feria')) return 'status-ferias';
+    return 'status-default';
+  }
+
+  function fmtLabelFromId(id){
+    const [y,m,d] = id.split('-');
+    return d+'/'+m+'/'+y;
+  }
+
+  function uid(){
+    if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'id-'+Math.random().toString(36).slice(2)+Date.now();
+  }
+
+  function cardHasFocus(personId){
+    const card = contentEl.querySelector('[data-person-id="'+CSS.escape(personId)+'"]');
+    return !!(card && card.contains(document.activeElement));
+  }
+
+  async function apiGet(){
+    const res = await fetch(API_URL, {method:'GET'});
+    if(!res.ok) throw new Error('Falha ao carregar dados');
+    return res.json();
+  }
+
+  async function apiPost(action, payload){
+    // usamos text/plain para evitar preflight CORS (o Apps Script não trata OPTIONS)
+    const res = await fetch(API_URL, {
+      method:'POST',
+      headers: {'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(Object.assign({action:action}, payload))
+    });
+    return res.json().catch(()=>({ok:true}));
+  }
+
+  async function refresh(silent){
+    try{
+      const data = await apiGet();
+      state.days = data.days || [];
+      state.people = (data.people || []).map(p=>({...p, order: Number(p.order)||0}));
+      state.entries = data.entries || [];
+      syncSub.textContent = 'Sincronizado — última atualização ' + new Date().toLocaleTimeString('pt-BR');
+      render();
+    }catch(err){
+      console.error(err);
+      if(!silent) syncSub.textContent = 'Não foi possível conectar à planilha. Verifique a URL configurada.';
+    }
+  }
+
+  function boot(){
+    refresh(false);
+    pollTimer = setInterval(()=>refresh(true), POLL_MS);
+  }
+
+  /* ---------- render ---------- */
+  function render(){
+    state.days = state.days.slice().sort((a,b)=> a.id < b.id ? -1 : (a.id>b.id?1:0));
+    if(!currentDayId || !state.days.find(d=>d.id===currentDayId)){
+      currentDayId = state.days.length ? state.days[0].id : null;
+    }
+    renderTabs();
+    renderPeople();
+  }
+
+  function renderTabs(){
+    tabsRow.innerHTML = '';
+    state.days.forEach(d=>{
+      const btn = document.createElement('button');
+      btn.className = 'tab' + (d.id===currentDayId ? ' active' : '');
+      const label = document.createElement('span');
+      label.textContent = d.label || fmtLabelFromId(d.id);
+      btn.appendChild(label);
+      const x = document.createElement('span');
+      x.className='x'; x.textContent='✕'; x.title='Excluir dia';
+      x.onclick = (e)=>{
+        e.stopPropagation();
+        if(confirm('Excluir o dia '+(d.label||fmtLabelFromId(d.id))+'? Isso apaga todos os responsáveis e clientes desse dia.')){
+          state.people = state.people.filter(p=>p.dayId!==d.id);
+          state.entries = state.entries.filter(en=>!state.people.find(p=>p.id===en.personId) ? true : true);
+          state.days = state.days.filter(dd=>dd.id!==d.id);
+          if(currentDayId===d.id) currentDayId=null;
+          render();
+          apiPost('deleteDay', {id:d.id}).then(()=>refresh(true));
+        }
+      };
+      btn.appendChild(x);
+      btn.onclick = ()=>{ currentDayId = d.id; renderTabs(); renderPeople(); };
+      tabsRow.appendChild(btn);
+    });
+    const add = document.createElement('button');
+    add.className='tab-add'; add.textContent='+ dia'; add.onclick = addDay;
+    tabsRow.appendChild(add);
+  }
+
+  function addDay(){
+    const input = prompt('Data do novo dia (dd/mm/aaaa):', '');
+    if(input===null) return;
+    let dateId;
+    const m = input.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if(m){ dateId = m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0'); }
+    else { dateId = new Date().toISOString().slice(0,10); }
+    if(state.days.find(d=>d.id===dateId)){ currentDayId = dateId; render(); return; }
+    const label = fmtLabelFromId(dateId);
+    const day = {id: dateId, label: label};
+    state.days.push(day);
+    currentDayId = dateId;
+    render();
+    apiPost('upsertDay', {data: day}).then(()=>refresh(true));
+  }
+
+  function peopleForCurrentDay(){
+    return state.people.filter(p=>p.dayId===currentDayId).sort((a,b)=>a.order-b.order);
+  }
+
+  function entriesForPerson(personId){
+    return state.entries.filter(en=>en.personId===personId);
+  }
+
+  function renderPeople(){
+    const people = currentDayId ? peopleForCurrentDay() : [];
+    if(!currentDayId){
+      contentEl.innerHTML = '<div class="empty-state">Nenhum dia cadastrado ainda.<br><button id="firstDayBtn">Criar primeiro dia</button></div>';
+      const b = document.getElementById('firstDayBtn');
+      if(b) b.onclick = addDay;
+      return;
+    }
+    let grid = contentEl.querySelector('.grid');
+    if(!grid){ contentEl.innerHTML=''; grid = document.createElement('div'); grid.className='grid'; contentEl.appendChild(grid); }
+
+    Array.from(grid.querySelectorAll('.card[data-person-id]')).forEach(card=>{
+      const pid = card.getAttribute('data-person-id');
+      if(!people.find(p=>p.id===pid) && !cardHasFocus(pid)) card.remove();
+    });
+
+    people.forEach(p=>{
+      if(cardHasFocus(p.id)) return;
+      let card = grid.querySelector('[data-person-id="'+CSS.escape(p.id)+'"]');
+      const built = buildPersonCard(p);
+      if(card) grid.replaceChild(built, card);
+      else {
+        const addTile = grid.querySelector('.add-person-card');
+        if(addTile) grid.insertBefore(built, addTile); else grid.appendChild(built);
+      }
+    });
+
+    if(!grid.querySelector('.add-person-card')) grid.appendChild(buildAddPersonCard());
+  }
+
+  function buildAddPersonCard(){
+    const btn = document.createElement('button');
+    btn.className='add-person-card';
+    btn.textContent='+ adicionar responsável';
+    btn.onclick = ()=>{
+      const name = prompt('Nome do responsável:', '') || 'Novo';
+      const person = {id: uid(), dayId: currentDayId, name: name, order: Date.now()};
+      state.people.push(person);
+      renderPeople();
+      apiPost('upsertPerson', {data: person}).then(()=>refresh(true));
+    };
+    return btn;
+  }
+
+  function saveEntry(entry){
+    apiPost('upsertEntry', {data: entry}).then(()=>refresh(true));
+  }
+  function savePerson(person){
+    apiPost('upsertPerson', {data: person}).then(()=>refresh(true));
+  }
+
+  function buildPersonCard(person){
+    const card = document.createElement('div');
+    card.className='card';
+    card.setAttribute('data-person-id', person.id);
+
+    const head = document.createElement('div');
+    head.className='card-head';
+    const nameInput = document.createElement('input');
+    nameInput.className='person-name';
+    nameInput.value = person.name || '';
+    nameInput.placeholder='Nome';
+    nameInput.addEventListener('change', ()=>{
+      const updated = Object.assign({}, person, {name: nameInput.value});
+      const idx = state.people.findIndex(p=>p.id===person.id);
+      if(idx>-1) state.people[idx]=updated;
+      savePerson(updated);
+    });
+    const delBtn = document.createElement('button');
+    delBtn.className='del-person'; delBtn.textContent='✕'; delBtn.title='Remover responsável';
+    delBtn.onclick = ()=>{
+      if(confirm('Remover "'+(person.name||'')+'" e todos os clientes desse dia?')){
+        state.people = state.people.filter(p=>p.id!==person.id);
+        state.entries = state.entries.filter(en=>en.personId!==person.id);
+        renderPeople();
+        apiPost('deletePerson', {id: person.id}).then(()=>refresh(true));
+      }
+    };
+    head.appendChild(nameInput); head.appendChild(delBtn);
+    card.appendChild(head);
+
+    const scroll = document.createElement('div');
+    scroll.className='table-scroll';
+    const table = document.createElement('table');
+    table.className='entries';
+    table.innerHTML = '<thead><tr><th>Cliente</th><th>Horário</th><th>Assunto</th><th>Qtd.</th><th>Local</th><th>Status</th><th></th></tr></thead>';
+    const tbody = document.createElement('tbody');
+
+    const entries = entriesForPerson(person.id);
+
+    entries.forEach(entry=>{
+      const tr = document.createElement('tr');
+
+      function fieldTd(field, isQtd){
+        const td = document.createElement('td');
+        if(isQtd) td.className='col-qtd';
+        const inp = document.createElement('input');
+        inp.type='text';
+        inp.value = entry[field] || '';
+        inp.addEventListener('change', ()=>{
+          const updated = Object.assign({}, entry, {[field]: inp.value});
+          const idx = state.entries.findIndex(e=>e.id===entry.id);
+          if(idx>-1) state.entries[idx]=updated;
+          saveEntry(updated);
+        });
+        inp.addEventListener('keydown', e=>{ if(e.key==='Enter') inp.blur(); });
+        td.appendChild(inp);
+        return td;
+      }
+
+      tr.appendChild(fieldTd('cliente'));
+      tr.appendChild(fieldTd('horario'));
+      tr.appendChild(fieldTd('assunto'));
+      tr.appendChild(fieldTd('quantidade', true));
+      tr.appendChild(fieldTd('local'));
+
+      const statusTd = document.createElement('td');
+      const sel = document.createElement('select');
+      sel.className = 'status-select ' + statusClass(entry.status);
+      const current = entry.status || '';
+      const hasCurrent = STATUS_OPTIONS.includes(current);
+      if(!current){
+        const o=document.createElement('option'); o.value=''; o.textContent='—'; o.selected=true;
+        sel.appendChild(o);
+      }
+      STATUS_OPTIONS.forEach(opt=>{
+        const o=document.createElement('option'); o.value=opt; o.textContent=opt;
+        if(opt===current) o.selected=true;
+        sel.appendChild(o);
+      });
+      if(current && !hasCurrent){
+        const o=document.createElement('option'); o.value=current; o.textContent=current; o.selected=true;
+        sel.appendChild(o);
+      }
+      sel.addEventListener('change', ()=>{
+        sel.className = 'status-select ' + statusClass(sel.value);
+        const updated = Object.assign({}, entry, {status: sel.value});
+        const idx = state.entries.findIndex(e=>e.id===entry.id);
+        if(idx>-1) state.entries[idx]=updated;
+        saveEntry(updated);
+      });
+      statusTd.appendChild(sel);
+      tr.appendChild(statusTd);
+
+      const delTd = document.createElement('td');
+      delTd.className='col-del';
+      const delBtnRow = document.createElement('button');
+      delBtnRow.className='row-del'; delBtnRow.textContent='✕'; delBtnRow.title='Remover linha';
+      delBtnRow.onclick = ()=>{
+        state.entries = state.entries.filter(e=>e.id!==entry.id);
+        renderPeople();
+        apiPost('deleteEntry', {id: entry.id}).then(()=>refresh(true));
+      };
+      delTd.appendChild(delBtnRow);
+      tr.appendChild(delTd);
+
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    scroll.appendChild(table);
+    card.appendChild(scroll);
+
+    const foot = document.createElement('div');
+    foot.className='card-foot';
+    const addRow = document.createElement('button');
+    addRow.className='add-row-btn'; addRow.textContent='+ cliente';
+    addRow.onclick = ()=>{
+      const entry = {id: uid(), personId: person.id, cliente:'', horario:'', assunto:'', quantidade:'', local:'', status:''};
+      state.entries.push(entry);
+      renderPeople();
+      saveEntry(entry);
+    };
+    foot.appendChild(addRow);
+    card.appendChild(foot);
+
+    return card;
+  }
+})();
+</script>
+</body>
+</html>
