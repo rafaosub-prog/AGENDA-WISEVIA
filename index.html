@@ -395,10 +395,10 @@ const POLL_MS = 4000;
         inp.type='text';
         inp.value = entry[field] || '';
         inp.addEventListener('change', ()=>{
-          const updated = Object.assign({}, entry, {[field]: inp.value});
+          entry[field] = inp.value; // mantém o objeto da linha sincronizado p/ os outros campos
           const idx = state.entries.findIndex(e=>e.id===entry.id);
-          if(idx>-1) state.entries[idx]=updated;
-          saveEntry(updated);
+          if(idx>-1) state.entries[idx]=entry;
+          saveEntry(entry);
         });
         inp.addEventListener('keydown', e=>{ if(e.key==='Enter') inp.blur(); });
         td.appendChild(inp);
@@ -431,10 +431,10 @@ const POLL_MS = 4000;
       }
       sel.addEventListener('change', ()=>{
         sel.className = 'status-select ' + statusClass(sel.value);
-        const updated = Object.assign({}, entry, {status: sel.value});
+        entry.status = sel.value; // mantém o objeto da linha sincronizado p/ os outros campos
         const idx = state.entries.findIndex(e=>e.id===entry.id);
-        if(idx>-1) state.entries[idx]=updated;
-        saveEntry(updated);
+        if(idx>-1) state.entries[idx]=entry;
+        saveEntry(entry);
       });
       statusTd.appendChild(sel);
       tr.appendChild(statusTd);
