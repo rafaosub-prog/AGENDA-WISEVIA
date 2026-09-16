@@ -164,7 +164,7 @@ const POLL_MS = 4000;
 
   const STATUS_OPTIONS = ["Aberto","Fechado","Em andamento","Férias"];
 
-  if(!API_URL || API_URL.indexOf('COLE_AQUI') === 0){
+  if(!API_URL || API_URL.indexOf('https://script.google.com/macros/s/AKfycbzGJc-jdYnpZnOW8nSqOupUZXLBg6Y1Q390e-YoGl6lhmMQQa6AUxbEnITFdBknE9VRjg/exec') === 0){
     configBanner.innerHTML = '<div class="config-banner">Este site ainda não está ligado à planilha. '+
       'Abra o arquivo <code>index.html</code>, encontre a linha <code>const API_URL = ...</code> e cole ali '+
       'a URL do seu Apps Script (a que termina em <code>/exec</code>).</div>';
