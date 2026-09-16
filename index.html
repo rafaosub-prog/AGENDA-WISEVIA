@@ -339,11 +339,25 @@ const POLL_MS = 4000;
     return btn;
   }
 
+  // Fila por registro: garante que os POSTs de uma mesma linha/pessoa
+  // sejam enviados e concluídos em ordem, mesmo que a rede responda
+  // fora de ordem (evita um campo mais antigo sobrescrever um mais novo).
+  const saveQueues = {};
+  function queueSave(id, action, entryData){
+    const prev = saveQueues[id] || Promise.resolve();
+    const next = prev
+      .then(()=> apiPost(action, {data: entryData}))
+      .then(()=> refresh(true))
+      .catch(err=> console.error('Falha ao salvar', id, err));
+    saveQueues[id] = next;
+    return next;
+  }
+
   function saveEntry(entry){
-    apiPost('upsertEntry', {data: entry}).then(()=>refresh(true));
+    queueSave('entry:'+entry.id, 'upsertEntry', entry);
   }
   function savePerson(person){
-    apiPost('upsertPerson', {data: person}).then(()=>refresh(true));
+    queueSave('person:'+person.id, 'upsertPerson', person);
   }
 
   function buildPersonCard(person){
